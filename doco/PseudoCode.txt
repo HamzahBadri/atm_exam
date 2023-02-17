@@ -1,0 +1,70 @@
+READ data from "/data/UserInfo"
+SET userlist as empty
+FOR line in data
+  CREATE user
+  ADD user to userlist
+ENDFOR
+READ data from "/data/OpeningAccountsData"
+SET accountlist as empty
+FOR line in data
+  CREATE account
+  ADD account to accountlist
+ENDFOR
+
+SET quit as false
+REPEAT
+  WRITE "Please enter your user ID"
+  READ id
+  IF id not in userlist
+    WRITE "Error: id not recognized"
+  ELSE
+    SET user as user from userlist WHERE user.id == id
+    WRITE "Welcome " + user.name + ". Please enter an option"
+    READ option
+    IF option == 1
+      SET useraccounts as accountlist WHERE accountlist.accountownerid == id
+      WRITE "Please choose an account"
+      READ accountnum
+      IF accountnum not in useraccounts
+        WRITE "Error: account not recognized"
+      ELSE
+        SET account as account from accountlist with matching accountnum
+        WRITE "Please choose an amount to deposit. Current balance: $" + account.balance
+        READ deposit
+        SET account.balance as account.balance + deposit
+        WRITE "Account balance = " + account.balance
+      ENDIF
+    ELIF option == 2
+      SET useraccounts as accountlist WHERE accountlist.accountownerid == id
+      WRITE "Please choose an account"
+      READ accountnum
+      IF accountnum not in useraccounts
+        WRITE "Error: account not recognized"
+      ELSE
+        SET account as account from accountlist with matching accountnum
+        WRITE "Please choose an amount to withdraw. Current balance: $" + account.balance
+        READ withdraw
+        IF withdraw > account.balance
+          WRITE "Error: not enough money in account"
+        ELSE
+          SET account.balance as account.balance + withdraw
+          WRITE "Account balance = " + account.balance
+        WITHDRAW
+      ENDIF
+    ELIF option == 3
+      SET useraccounts as accountlist WHERE accountlist.accountownerid == id
+      WRITE "Please choose an account"
+      READ accountnum
+      IF accountnum not in useraccounts
+        WRITE "Error: account not recognized"
+      ELSE
+        SET account as account from accountlist with matching accountnum
+        WRITE "Account balance = " + account.balance
+      ENDIF
+    ELIF option == q
+      SET quit as true
+    ENDIF
+  ENDIF
+UNTIL quit
+
+    
