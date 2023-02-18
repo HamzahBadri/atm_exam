@@ -1,8 +1,6 @@
 package au.com.nuvento.atm_exam
 
-class Account (val ownerIDC: String, val accountNumC: Int, val accountTypeC: String, val balanceC: Float) {
-  val ownerID = ownerIDC
-  val accountNum = accountNumC
-  val accountType = accountTypeC
-  val balance = balanceC
+class Account (val ownerID: String, val accountNum: Int, val accountType: String, var balance: Float) {
+
+  def updateBalance(newBalance: Float) = balance = newBalance
 }
