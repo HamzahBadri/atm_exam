@@ -1,7 +1,6 @@
 package au.com.nuvento.atm_exam
 
-import au.com.nuvento.atm_exam.User
-import au.com.nuvento.atm_exam.Account
+import au.com.nuvento.atm_exam.Database
 
 import scala.io.StdIn
 /**
@@ -17,18 +16,10 @@ object ATM {
   
   def main(args : Array[String]) = {
 
-    val userList = List(
-      User("John","Smith","0403715629".toLong, "001"),
-      User("Leanne","Smith","0403185031".toLong,"002"),
-      User("Kim","Kash","0404993021".toLong,"003"),
-    )
-    val accountList = List(
-      Account("001", 9264945, "Cheque", 500.90),
-      Account("001", 7814135, "Saving", 200.090),
-      Account("002", 9676422, "Saving", 1200.00),
-      Account("002", 7524155, "Cheque", 50.00),
-      Account("003", 9042221, "Saving", 4000.20)
-    )
+    val database = Database("data/UserInfo.txt", "data/OpeningAccountsData.txt")
+
+    val userList = database.userList
+    val accountList = database.accountList
 
     var quit = false
     while (!quit){
@@ -51,34 +42,38 @@ object ATM {
             println("Please choose an account to check its balance:")
             for (index <- 1 to userAccounts.length) println(s"${index} for ${userAccounts(index - 1).accountNum} (${userAccounts(index - 1).accountType})")
             val activeAccountNumber = StdIn.readInt()
-            if (activeAccountNumber > userAccounts.length) println(s"Error: This account ($action) does not exist")
+            if (activeAccountNumber > userAccounts.length) println(s"Error: This account ($activeAccountNumber) does not exist")
             else{
               val activeAccount = userAccounts(activeAccountNumber - 1)
               println("Please choose an amount of money to deposit.")
               println(s"Current balance: $$${activeAccount.balance}")
               val deposit = StdIn.readFloat()
               activeAccount.updateBalance(activeAccount.balance + deposit)
+              println(s"Transaction successful. Current balance: $$${activeAccount.balance}")
             }
           case '2' =>
             val userAccounts = getUserAccounts(id, accountList)
             println("Please choose an account to check its balance:")
             for (index <- 1 to userAccounts.length) println(s"${index} for ${userAccounts(index - 1).accountNum} (${userAccounts(index - 1).accountType})")
             val activeAccountNumber = StdIn.readInt()
-            if (activeAccountNumber > userAccounts.length) println(s"Error: This account ($action) does not exist")
+            if (activeAccountNumber > userAccounts.length) println(s"Error: This account ($activeAccountNumber) does not exist")
             else {
               val activeAccount = userAccounts(activeAccountNumber - 1)
               println("Please choose an amount of money to withdraw.")
               println(s"Current balance: $$${activeAccount.balance}")
               val withdraw = StdIn.readFloat()
               if (withdraw > activeAccount.balance) println(s"Error: Account does not have sufficient funds to withdraw requested amount ($$$withdraw)")
-              else activeAccount.updateBalance(activeAccount.balance - withdraw)
+              else {
+                activeAccount.updateBalance(activeAccount.balance - withdraw)
+                println(s"Transaction successful. Current balance: $$${activeAccount.balance}")
+              }
             }
           case '3' =>
             val userAccounts = getUserAccounts(id, accountList)
             println("Please choose an account to check its balance:")
             for (index <- 1 to userAccounts.length) println(s"${index} for ${userAccounts(index-1).accountNum} (${userAccounts(index-1).accountType})")
             val activeAccountNumber = StdIn.readInt()
-            if (activeAccountNumber > userAccounts.length) println(s"Error: This account ($action) does not exist")
+            if (activeAccountNumber > userAccounts.length) println(s"Error: This account ($activeAccountNumber) does not exist")
             else{
               val activeAccount = userAccounts(activeAccountNumber - 1)
               println(s"Current balance of account ${activeAccount.accountNum}: $$${activeAccount.balance}")
@@ -88,6 +83,7 @@ object ATM {
         }
       }
     }
+    database.quit()
 
   }
 
