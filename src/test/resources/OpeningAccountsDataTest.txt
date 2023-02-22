@@ -1,0 +1,4 @@
+AccountOwnerID|||AccountNumber|||AccountType|||OpeningBalance
+001|||9264945|||Cheque|||510.90
+002|||9676422|||Saving|||1210.00
+001|||7814135|||Saving|||210.09

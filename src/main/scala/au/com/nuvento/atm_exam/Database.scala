@@ -17,7 +17,11 @@ class Database (val userPath: String, val accountPath: String){
     if (userText.length <= 0) List()
     else {
       val userParameters = userText.head.split(",")
-      val newUser = User(userParameters(0),userParameters(1),userParameters(2),userParameters(3))
+      val firstName = userParameters(0)
+      val lastName = userParameters(1)
+      val mobile = userParameters(2)
+      val userID = userParameters(3)
+      val newUser = User(firstName, lastName, mobile, userID)
       newUser :: createUserList(userText.tail)
     }
   }
@@ -26,25 +30,43 @@ class Database (val userPath: String, val accountPath: String){
     if (accountText.length <= 0) List()
     else {
       val accountParameters = accountText.head.split("\\|\\|\\|")
-      val newAccount = Account(accountParameters(0), accountParameters(1).toInt, accountParameters(2), accountParameters(3).toFloat)
+      val ownerID = accountParameters(0)
+      val accountNum = accountParameters(1).toInt
+      val accountType = accountParameters(2)
+      val balance = accountParameters(3).toFloat
+      val newAccount = Account(ownerID, accountNum, accountType, balance)
       newAccount :: createAccountList(accountText.tail)
     }
   }
-  private val listOfUserLines = readTextFile(userPath)
-  val userList = createUserList(listOfUserLines.tail)
+  private val userLines = readTextFile(userPath)
+  private val userLinesNoHeaders = userLines.tail
+  val userList = createUserList(userLinesNoHeaders)
 
-  private val listOfAccountLines = readTextFile(accountPath)
-  val accountList = createAccountList(listOfAccountLines.tail)
+  private val accountLines = readTextFile(accountPath)
+  private val accountLinesNoHeaders = accountLines.tail
+  val accountList = createAccountList(accountLinesNoHeaders)
+
+  def getUserAccounts(id: String): List[Account] = {
+    def getUserAccountsRecursive(iteratedAccountList: List[Account]): List[Account] = {
+      if (iteratedAccountList.length < 1) List ()
+      else if (iteratedAccountList.head.ownerID == id)
+        iteratedAccountList.head :: getUserAccountsRecursive(iteratedAccountList.tail)
+      else getUserAccountsRecursive (iteratedAccountList.tail)
+    }
+    getUserAccountsRecursive(accountList)
+  }
 
   def quit() = {
     println("Account balance summary:")
     for (account <- accountList) println(s"${account.accountNum}: $$${account.balance}")
     val fileWriter = new FileWriter(new File(accountPath))
     fileWriter.write("AccountOwnerID|||AccountNumber|||AccountType|||OpeningBalance\n")
-    for (account <- accountList){
-      val accountLine = s"${account.ownerID}|||${account.accountNum}|||${account.accountType}|||${account.balance}"
+    for (index <- accountList.indices){
+      val account = accountList(index)
+      val balanceRounded = "%.2f".format(account.balance)
+      val accountLine = s"${account.ownerID}|||${account.accountNum}|||${account.accountType}|||${balanceRounded}"
       fileWriter.write(accountLine)
-      if (accountList.indexOf(account) < accountList.length - 1) fileWriter.write("\n")
+      if (index < accountList.length - 1) fileWriter.write("\n")
     }
     fileWriter.close()
   }
