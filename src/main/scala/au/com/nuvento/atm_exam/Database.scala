@@ -6,14 +6,14 @@ import au.com.nuvento.atm_exam.Account
 import java.io.{File, FileWriter}
 
 class Database (val userPath: String, val accountPath: String){
-  private def readTextFile(path: String): List[String] = {
+  def readTextFile(path: String): List[String] = {
     val bufferedSource = scala.io.Source.fromFile(path)
     val listOfLines = bufferedSource.getLines().toList
     bufferedSource.close()
     listOfLines
   }
 
-  private def createUserList(userText: List[String]): List[User] = {
+  def createUserList(userText: List[String]): List[User] = {
     if (userText.length <= 0) List()
     else {
       val userParameters = userText.head.split(",")
@@ -26,7 +26,7 @@ class Database (val userPath: String, val accountPath: String){
     }
   }
 
-  private def createAccountList(accountText: List[String]): List[Account] = {
+  def createAccountList(accountText: List[String]): List[Account] = {
     if (accountText.length <= 0) List()
     else {
       val accountParameters = accountText.head.split("\\|\\|\\|")
@@ -45,6 +45,15 @@ class Database (val userPath: String, val accountPath: String){
   private val accountLines = readTextFile(accountPath)
   private val accountLinesNoHeaders = accountLines.tail
   val accountList = createAccountList(accountLinesNoHeaders)
+  
+  def getUserFromID(id: String): User = {
+    val userIDList = userList.map(user => user.userID)
+    if (!userIDList.contains(id)) null
+    else {
+      val userIndex = userIDList.indexOf(id)
+      userList(userIndex)
+    }
+  }
 
   def getUserAccounts(id: String): List[Account] = {
     def getUserAccountsRecursive(iteratedAccountList: List[Account]): List[Account] = {
@@ -58,7 +67,7 @@ class Database (val userPath: String, val accountPath: String){
 
   def quit() = {
     println("Account balance summary:")
-    for (account <- accountList) println(s"${account.accountNum}: $$${account.balance}")
+    for (account <- accountList) println(s"${account.accountNum}: $$${"%.2f".format(account.balance)}")
     val fileWriter = new FileWriter(new File(accountPath))
     fileWriter.write("AccountOwnerID|||AccountNumber|||AccountType|||OpeningBalance\n")
     for (index <- accountList.indices){

@@ -1,6 +1,7 @@
 package atmtests
 
 import au.com.nuvento.atm_exam.Database
+import au.com.nuvento.atm_exam.User
 import org.junit.*
 import org.junit.Assert.*
 
@@ -10,6 +11,8 @@ import java.io.{File, FileWriter}
 class DatabaseTest {
 
   var database: Database = _
+  val userPath = "src/test/resources/UserInfoTest.txt"
+  val accountPath = "src/test/resources/OpeningAccountsDataTest.txt"
 
   @Before
   def init(): Unit = {
@@ -19,8 +22,43 @@ class DatabaseTest {
     fileWriter.write("002|||9676422|||Saving|||1200.00\n")
     fileWriter.write("001|||7814135|||Saving|||200.09\n")
     fileWriter.close()
-    database = Database("src/test/resources/UserInfoTest.txt",
-      "src/test/resources/OpeningAccountsDataTest.txt")
+    database = Database(userPath, accountPath)
+  }
+
+  @Test
+  def readTextFileUserTest() = {
+    val userTextLines = database.readTextFile(userPath)
+    val numberOfUsersPlusHeaders = 4
+    assertEquals(userTextLines.length, numberOfUsersPlusHeaders)
+    for (line <- userTextLines) {
+      val splitLine = line.split(",")
+      val parametersPerLine = 4
+      assertEquals(splitLine.length, parametersPerLine)
+    }
+  }
+
+  @Test
+  def readTextFileAccountTest() = {
+    val accountTextLines = database.readTextFile(accountPath)
+    val numberOfAccountsPlusHeaders = 4
+    assertEquals(accountTextLines.length, numberOfAccountsPlusHeaders)
+    for (line <- accountTextLines) {
+      val splitLine = line.split("\\|\\|\\|")
+      val parametersPerLine = 4
+      assertEquals(splitLine.length, parametersPerLine)
+    }
+  }
+
+  @Test
+  def getUserFromIDTest() = {
+    val user001 = database.getUserFromID("001")
+    val user002 = database.getUserFromID("002")
+    val user003 = database.getUserFromID("003")
+    val user004 = database.getUserFromID("004")
+    assertNotNull(user001)
+    assertNotNull(user002)
+    assertNotNull(user003)
+    assertNull(user004)
   }
 
   @Test
@@ -51,8 +89,7 @@ class DatabaseTest {
     val accountLinesBefore = bufferedSourceBefore.getLines().toList
     bufferedSourceBefore.close()
     for (account <- database.accountList) {
-      val newBalance = account.balance + 10
-      account.updateBalance(newBalance)
+      account.deposit(10)
     }
     database.quit()
     val bufferedSourceAfter = scala.io.Source.fromFile("src/test/resources/OpeningAccountsDataTest.txt")

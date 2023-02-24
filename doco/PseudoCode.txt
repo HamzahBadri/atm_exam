@@ -1,65 +1,100 @@
 READ data from "/data/UserInfo"
 SET userlist as empty
-FOR line in data
-  CREATE user
-  ADD user to userlist
-ENDFOR
+REPEAT
+  SET user by reading line in data
+  SET userlist as userlist + user
+UNTIL end of data
 READ data from "/data/OpeningAccountsData"
 SET accountlist as empty
-FOR line in data
-  CREATE account
-  ADD account to accountlist
-ENDFOR
+REPEAT
+  SET account by reading line in data
+  SET accountlist as accountlist + user
+UNTIL end of data
 
 SET quit as false
 REPEAT
   WRITE "Please enter your user ID"
-  READ id
-  IF id not in userlist
+  READ activeuserid
+  SET activeuser as empty
+  REPEAT
+    SET user from userlist
+    IF user.id == activeuserid
+    SET activeuser as user
+  UNTIL end of userlist
+  IF activeuser is empty
     WRITE "Error: id not recognized"
   ELSE
-    SET user as user from userlist WHERE user.id == id
     WRITE "Welcome " + user.name + ". Please enter an option"
     READ option
     IF option == 1
-      SET useraccounts as accountlist WHERE accountlist.accountownerid == id
+      SET useraccounts as empty
+      REPEAT
+        SET account from accountlist
+        IF account.ownerid == activeuserid
+        SET useraccounts as useraccounts + account
+      UNTIL end of accountlist
       WRITE "Please choose an account"
       READ accountnum
-      IF accountnum not in useraccounts
+      SET activeaccount as empty
+      REPEAT
+        SET account from useraccounts
+        IF account.num == accountnum
+        SET activeaccount as account
+      UNTIL end of useraccounts
+      IF activeaccount is empty
         WRITE "Error: account not recognized"
       ELSE
-        SET account as account from accountlist with matching accountnum
-        WRITE "Please choose an amount to deposit. Current balance: $" + account.balance
-        READ deposit
-        SET account.balance as account.balance + deposit
-        WRITE "Account balance = " + account.balance
+        WRITE "Please choose an amount to deposit. Current balance: $" + activeaccount.balance
+        READ amount
+        SET activeaccount.balance as activeaccount.balance + amount
+        WRITE "Account balance = " + activeaccount.balance
       ENDIF
     ELIF option == 2
-      SET useraccounts as accountlist WHERE accountlist.accountownerid == id
+      SET useraccounts as empty
+      REPEAT
+        SET account from accountlist
+        IF account.ownerid == activeuserid
+        SET useraccounts as useraccounts + account
+      UNTIL end of accountlist
       WRITE "Please choose an account"
       READ accountnum
-      IF accountnum not in useraccounts
+      SET activeaccount as empty
+      REPEAT
+        SET account from useraccounts
+        IF account.num == accountnum
+        SET activeaccount as account
+      UNTIL end of useraccounts
+      IF activeaccount is empty
         WRITE "Error: account not recognized"
       ELSE
-        SET account as account from accountlist with matching accountnum
-        WRITE "Please choose an amount to withdraw. Current balance: $" + account.balance
-        READ withdraw
-        IF withdraw > account.balance
+        WRITE "Please choose an amount to withdraw. Current balance: $" + activeaccount.balance
+        READ amount
+        IF amount > account.balance
           WRITE "Error: not enough money in account"
         ELSE
-          SET account.balance as account.balance + withdraw
-          WRITE "Account balance = " + account.balance
+          SET activeaccount.balance as activeaccount.balance + amount
+          WRITE "Account balance = " + activeaccount.balance
         WITHDRAW
       ENDIF
     ELIF option == 3
-      SET useraccounts as accountlist WHERE accountlist.accountownerid == id
+      SET useraccounts as empty
+      REPEAT
+        SET account from accountlist
+        IF account.ownerid == activeuserid
+        SET useraccounts as useraccounts + account
+      UNTIL end of accountlist
       WRITE "Please choose an account"
       READ accountnum
-      IF accountnum not in useraccounts
+      SET activeaccount as empty
+      REPEAT
+        SET account from useraccounts
+        IF account.num == accountnum
+        SET activeaccount as account
+      UNTIL end of useraccounts
+      IF activeaccount is empty
         WRITE "Error: account not recognized"
       ELSE
-        SET account as account from accountlist with matching accountnum
-        WRITE "Account balance = " + account.balance
+        WRITE "Account balance = " + activeaccount.balance
       ENDIF
     ELIF option == q
       SET quit as true
@@ -67,4 +102,13 @@ REPEAT
   ENDIF
 UNTIL quit
 
-    
+WRITE "FirstName,Surname,Mobile,AccountOwnerID" to "/data/UserInfo"
+REPEAT
+  SET user from userlist
+  WRITE "user.firstname,user.lastname,user.mobile,user.userid" to "/data/UserInfo"
+UNTIL end of userlist
+WRITE "AccountOwnerID|||AccountNumber|||AccountType|||OpeningBalance" to "/data/OpeningAccountsData"
+REPEAT
+  SET account from accountlist
+  WRITE "account.ownerid|||account.accountnum|||account.accountype|||account.balance" to "/data/OpeningAccountsData"
+UNTIL end of accountlist
